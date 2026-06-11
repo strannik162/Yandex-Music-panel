@@ -4,6 +4,9 @@ import asyncio
 import hashlib
 import threading
 import ctypes
+import random
+import math
+from datetime import timedelta
 
 from PySide6.QtCore import (
     Qt,
@@ -50,7 +53,8 @@ except Exception:
 
 
 PANEL_W = 570
-PANEL_H = 100
+PANEL_H_LARGE = 160
+PANEL_H_SMALL = 88
 
 TRIGGER_WIDTH = 360
 TRIGGER_Y = 6
@@ -136,12 +140,12 @@ class MediaWorker(QObject):
             except Exception:
                 pass
 
-    def command(self, action: str):
+    def command(self, action: str, value=None):
         if not self.loop:
             return
 
         try:
-            asyncio.run_coroutine_threadsafe(self._control(action), self.loop)
+            asyncio.run_coroutine_threadsafe(self._control(action, value), self.loop)
         except Exception:
             pass
 
@@ -182,10 +186,11 @@ class MediaWorker(QObject):
             signature = (
                 data.get("title", ""),
                 data.get("artist", ""),
-                data.get("album", ""),
                 data.get("app", ""),
                 data.get("playing", False),
                 cover_hash,
+                data.get("position", 0),
+                data.get("duration", 0),
             )
 
             if signature != self.last_signature:
@@ -267,6 +272,18 @@ class MediaWorker(QObject):
             except Exception:
                 pass
 
+            pos = 0
+            dur = 0
+            try:
+                tl = session.get_timeline_properties()
+                if tl:
+                    # position is in ticks (100-nanosecond units)
+                    # 1 second = 10,000,000 ticks
+                    pos = tl.position.duration / 10_000_000
+                    dur = tl.end_time.duration / 10_000_000
+            except Exception:
+                pass
+
             if not title:
                 title = "Музыка не найдена"
             if not artist:
@@ -279,6 +296,8 @@ class MediaWorker(QObject):
                 "app": app,
                 "playing": playing,
                 "cover": cover,
+                "position": int(pos),
+                "duration": int(dur),
             }
 
         except Exception as e:
@@ -330,7 +349,7 @@ class MediaWorker(QObject):
         except Exception:
             return None
 
-    async def _control(self, action: str):
+    async def _control(self, action: str, value=None):
         try:
             session = self._get_yandex_music_session()
             self.session = session
@@ -338,7 +357,10 @@ class MediaWorker(QObject):
             if not session:
                 return
 
-            if action == "play_pause":
+            if action == "seek" and value is not None:
+                await session.try_change_playback_position_async(timedelta(seconds=value))
+
+            elif action == "play_pause":
                 try:
                     await session.try_toggle_play_pause_async()
                 except Exception:
@@ -564,9 +586,107 @@ class RoundedCoverLabel(QWidget):
             painter.drawText(self.rect(), Qt.AlignCenter, "♪")
 
 
+class CustomSlider(QWidget):
+    seek_requested = Signal(int)
+
+    def __init__(self):
+        super().__init__()
+        self.setFixedHeight(12)
+        self.pos_val = 0
+        self.dur_val = 0
+        self.setCursor(Qt.PointingHandCursor)
+
+    def set_value(self, pos, dur):
+        self.pos_val = pos
+        self.dur_val = dur
+        self.update()
+
+    def mousePressEvent(self, event):
+        if self.dur_val > 0:
+            ratio = event.position().x() / self.width()
+            new_pos = int(ratio * self.dur_val)
+            self.seek_requested.emit(new_pos)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+
+        rect = self.rect()
+        h = 4
+        y = (rect.height() - h) // 2
+
+        bg_path = QPainterPath()
+        bg_path.addRoundedRect(0, y, rect.width(), h, 2, 2)
+        painter.fillPath(bg_path, QColor(255, 255, 255, 30))
+
+        if self.dur_val > 0:
+            progress = self.pos_val / self.dur_val
+            fg_w = int(rect.width() * progress)
+            fg_path = QPainterPath()
+            fg_path.addRoundedRect(0, y, fg_w, h, 2, 2)
+            painter.fillPath(fg_path, QColor(255, 255, 255, 180))
+
+            # Knob
+            kx = fg_w
+            painter.setBrush(QColor(255, 255, 255, 255))
+            painter.setPen(Qt.NoPen)
+            painter.drawEllipse(QPointF(kx, y + h / 2), 5, 5)
+
+
+class SpectrumVisualizer(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setFixedHeight(24)
+        self.bars = 32
+        self.values = [0.1] * self.bars
+        self.playing = False
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._animate)
+        self.timer.start(50)
+
+    def set_playing(self, playing):
+        self.playing = playing
+
+    def _animate(self):
+        t = time.time()
+        if not self.playing:
+            for i in range(self.bars):
+                self.values[i] = max(0.05, self.values[i] * 0.9)
+        else:
+            for i in range(self.bars):
+                wave = (math.sin(t * 5 + i * 0.4) + 1) / 2
+                target = random.uniform(0.1, 0.4) + wave * 0.6
+                self.values[i] = self.values[i] * 0.3 + target * 0.7
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+
+        w = self.width()
+        h = self.height()
+        gap = 2
+        bar_w = (w - (self.bars - 1) * gap) / self.bars
+
+        for i in range(self.bars):
+            val = self.values[i]
+            bar_h = val * h
+            rect = QRectF(i * (bar_w + gap), h - bar_h, bar_w, bar_h)
+            painter.setPen(Qt.NoPen)
+            # Gradient-like color based on height
+            color = QColor(255, 255, 255, int(100 + 155 * val))
+            painter.setBrush(color)
+            painter.drawRoundedRect(rect, 1.5, 1.5)
+
+
 class LiquidCard(QFrame):
+    double_clicked = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
+
+    def mouseDoubleClickEvent(self, event):
+        self.double_clicked.emit()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -583,16 +703,17 @@ class LiquidCard(QFrame):
 
 
 class LiquidMusicPanel(QWidget):
-    action_requested = Signal(str)
+    action_requested = Signal(str, object)
 
     def __init__(self):
         super().__init__()
 
         self.visible_panel = False
         self.pinned = False
+        self.manual_pos = False
         self.last_hot_time = 0
 
-        self.setFixedSize(PANEL_W, PANEL_H)
+        self.setFixedSize(PANEL_W, PANEL_H_LARGE)
 
         self.setWindowFlags(
             Qt.FramelessWindowHint
@@ -618,7 +739,7 @@ class LiquidMusicPanel(QWidget):
 
     def _build_ui(self):
         self.card = LiquidCard(self)
-        self.card.setGeometry(0, 0, PANEL_W, PANEL_H)
+        self.card.setGeometry(0, 0, PANEL_W, PANEL_H_LARGE)
 
         shadow = QGraphicsDropShadowEffect(self.card)
         shadow.setBlurRadius(34)
@@ -646,11 +767,16 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
-        self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev"))
-        self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause"))
-        self.next_btn.clicked.connect(lambda: self.action_requested.emit("next"))
+        self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
+        self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
+        self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
         self.pin_btn.clicked.connect(self._toggle_pin)
         self.close_btn.clicked.connect(QApplication.quit)
+        self.card.double_clicked.connect(self.toggle_mode)
+
+        self.visualizer = SpectrumVisualizer()
+        self.slider = CustomSlider()
+        self.slider.seek_requested.connect(lambda val: self.action_requested.emit("seek", val))
 
         text_block = QVBoxLayout()
         text_block.setContentsMargins(0, 0, 0, 0)
@@ -658,7 +784,6 @@ class LiquidMusicPanel(QWidget):
         text_block.addWidget(self.title)
         text_block.addWidget(self.artist)
         text_block.addWidget(self.app_label)
-        text_block.addStretch(1)
 
         text_container = QWidget()
         text_container.setLayout(text_block)
@@ -677,12 +802,21 @@ class LiquidMusicPanel(QWidget):
         controls_widget.setLayout(controls_layout)
         controls_widget.setFixedWidth(34 * 5 + 8 * 4 + 2)
 
-        main_row = QHBoxLayout(self.card)
-        main_row.setContentsMargins(16, 16, 16, 16)
-        main_row.setSpacing(14)
-        main_row.addWidget(self.cover)
-        main_row.addWidget(text_container, 1)
-        main_row.addWidget(controls_widget, 0, Qt.AlignVCenter)
+        info_row = QHBoxLayout()
+        info_row.setContentsMargins(0, 0, 0, 0)
+        info_row.setSpacing(14)
+        info_row.addWidget(self.cover)
+        info_row.addWidget(text_container, 1)
+        info_row.addWidget(controls_widget, 0, Qt.AlignVCenter)
+
+        self.main_layout = QVBoxLayout(self.card)
+        self.main_layout.setContentsMargins(16, 16, 16, 16)
+        self.main_layout.setSpacing(10)
+        self.main_layout.addLayout(info_row)
+        self.main_layout.addWidget(self.visualizer)
+        self.main_layout.addWidget(self.slider)
+
+        self.is_large = True
 
     def _build_animation(self):
         self.pos_anim = QPropertyAnimation(self, b"pos")
@@ -743,6 +877,28 @@ class LiquidMusicPanel(QWidget):
         if self.pinned:
             self.show_panel()
 
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() & Qt.LeftButton:
+            self.move(event.globalPosition().toPoint() - self.drag_pos)
+            self.manual_pos = True
+            event.accept()
+
+    def toggle_mode(self):
+        self.is_large = not self.is_large
+        h = PANEL_H_LARGE if self.is_large else PANEL_H_SMALL
+
+        self.setFixedSize(PANEL_W, h)
+        self.card.setFixedHeight(h)
+
+        self.cover.setVisible(self.is_large)
+        self.visualizer.setVisible(self.is_large)
+        self.slider.setVisible(self.is_large)
+
     def update_media(self, data: dict):
         title = data.get("title") or "Яндекс Музыка не найдена"
         artist = data.get("artist") or "Открой Яндекс Музыка.exe"
@@ -757,14 +913,21 @@ class LiquidMusicPanel(QWidget):
         else:
             self.app_label.setText("Только Яндекс Музыка.exe")
 
-        self.play_btn.set_icon("pause" if data.get("playing") else "play")
+        playing = data.get("playing", False)
+        self.play_btn.set_icon("pause" if playing else "play")
         self.cover.set_cover_bytes(data.get("cover"))
+
+        self.visualizer.set_playing(playing)
+        self.slider.set_value(data.get("position", 0), data.get("duration", 0))
 
     def _elide(self, text, label, width):
         metrics = label.fontMetrics()
         return metrics.elidedText(text, Qt.ElideRight, width)
 
     def reposition(self, hidden=False):
+        if self.manual_pos:
+            return
+
         screen = QApplication.screenAt(QCursor.pos()) or QApplication.primaryScreen()
         geo = screen.availableGeometry()
 
@@ -809,11 +972,14 @@ class LiquidMusicPanel(QWidget):
     def show_panel(self):
         self.visible_panel = True
 
-        screen = QApplication.screenAt(QCursor.pos()) or QApplication.primaryScreen()
-        geo = screen.availableGeometry()
-
-        target_x = geo.x() + geo.width() // 2 - self.width() // 2
-        target_y = geo.y() + SHOW_Y_OFFSET
+        if self.manual_pos:
+            target_x = self.x()
+            target_y = self.y()
+        else:
+            screen = QApplication.screenAt(QCursor.pos()) or QApplication.primaryScreen()
+            geo = screen.availableGeometry()
+            target_x = geo.x() + geo.width() // 2 - self.width() // 2
+            target_y = geo.y() + SHOW_Y_OFFSET
 
         self._animate_to(target_x, target_y, 1.0)
         self._refresh_topmost()
@@ -821,11 +987,14 @@ class LiquidMusicPanel(QWidget):
     def hide_panel(self):
         self.visible_panel = False
 
-        screen = QApplication.screenAt(QCursor.pos()) or QApplication.primaryScreen()
-        geo = screen.availableGeometry()
-
-        target_x = geo.x() + geo.width() // 2 - self.width() // 2
-        target_y = geo.y() - self.height() - 6
+        if self.manual_pos:
+            target_x = self.x()
+            target_y = self.y()
+        else:
+            screen = QApplication.screenAt(QCursor.pos()) or QApplication.primaryScreen()
+            geo = screen.availableGeometry()
+            target_x = geo.x() + geo.width() // 2 - self.width() // 2
+            target_y = geo.y() - self.height() - 6
 
         self._animate_to(target_x, target_y, 0.0)
 
