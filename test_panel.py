@@ -35,8 +35,9 @@ def test_panel_behavior():
     assert panel.cover.isVisible() is True, "Cover should be visible in Large mode"
     assert panel.visualizer.isVisible() is True, "Visualizer should be visible in Large mode"
     assert panel.slider.isVisible() is True, "Slider should be visible in Large mode"
+    assert panel.pinned is False, "Should initialize unpinned"
 
-    # Let's mock a mouse event class with needed methods for PySide6 compatibility
+    # Mock mouse event class with needed methods for PySide6 compatibility
     class MockMouseEvent:
         def __init__(self, button, local_pos, global_pos):
             self._button = button
@@ -99,7 +100,16 @@ def test_panel_behavior():
     assert panel.saved_manual_y == 160, f"Expected saved_manual_y to be 160, got {panel.saved_manual_y}"
     assert panel.pos() == QPoint(130, 160), f"Expected panel to move to (130, 160), got {panel.pos()}"
 
-    # 3. Test Slider Seek Emission
+    # 3. Test Pinning Toggle
+    panel._toggle_pin()
+    assert panel.pinned is True, "Panel should be pinned after toggling pin"
+    assert panel.pin_btn.accent is True, "Pin button should be accented when pinned"
+
+    panel._toggle_pin()
+    assert panel.pinned is False, "Panel should be unpinned after toggling pin again"
+    assert panel.pin_btn.accent is False, "Pin button should not be accented when unpinned"
+
+    # 4. Test Slider Seek Emission
     emitted_seek = []
 
     panel.action_requested.connect(lambda action, val: emitted_seek.append((action, val)))
@@ -108,9 +118,6 @@ def test_panel_behavior():
     panel.slider.set_media_state(0.0, 100.0, False)
 
     # Mock mouse click on the slider
-    # Let's calculate: margin is 42. Total width is 240. track_w = 240 - 84 = 156.
-    # If we click at x = 120 (exactly the center of slider/track), ratio is (120 - 42) / 156 = 78 / 156 = 0.5.
-    # Position should be 0.5 * 100.0 = 50.0.
     class MockSliderMouseEvent:
         def __init__(self, pos_x):
             self._pos_x = pos_x
