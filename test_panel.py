@@ -131,6 +131,25 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Panel Pinning
+    assert panel.pinned is False, "Panel should not be pinned initially"
+    panel._toggle_pin()
+    assert panel.pinned is True, "Panel should be pinned after toggle_pin()"
+    assert panel.pin_btn.accent is True, "Pin button accent should be True when pinned"
+
+    # Ensure show_panel was triggered when pinning
+    assert panel.visible_panel is True, "Panel should be visible when pinned"
+
+    # Calling _check_hover when unhovered should not hide panel when pinned
+    panel.last_hot_time = time.time() - 10.0  # simulate old hot time
+    panel._check_hover()
+    assert panel.visible_panel is True, "Panel should remain visible after check_hover when pinned"
+
+    # Unpin
+    panel._toggle_pin()
+    assert panel.pinned is False, "Panel should be unpinned after toggling again"
+    assert panel.pin_btn.accent is False, "Pin button accent should be False when unpinned"
+
     print("All tests passed successfully!")
 
 if __name__ == "__main__":
