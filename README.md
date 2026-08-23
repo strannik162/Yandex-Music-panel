@@ -1,26 +1,65 @@
-# Yandex Music Panel
+# Yandex Music Liquid Panel / Панель Яндекс Музыки
 
-A Windows liquid-glass overlay panel for Yandex Music with track cover, title, artist, and playback controls.
+A Windows liquid-glass overlay panel for Yandex Music with track cover, title, artist, audio spectrum visualizer, seek bar, panel pinning, and mode toggling.
 
-## Features
+Панель для Яндекс Музыки в стиле Liquid-glass для Windows с отображением обложки, названия трека, исполнителя, спектрограммой частот, перемоткой, закреплением и переключением между большим и маленьким режимами.
 
-- Liquid-glass style overlay
-- Shows track title and artist
-- Shows track cover
-- Play / pause button
-- Previous and next track buttons
-- Works with Yandex Music through Windows media controls
-- Can be launched as `.pyw` without a console window
+---
 
-## Requirements
+## Features / Возможности
+
+- **Liquid-Glass Style / Дизайн Liquid-glass**: Полупрозрачная стильная панель поверх всех окон с анимацией появления.
+- **Draggable Panel / Перемещение панели**: Зажмите левую кнопку мыши на карточке и перетащите панель в любое удобное место на экране.
+- **Audio Frequency Visualizer / Спектрометр частот**: Графический визуализатор, отображающий громкость и частоты звучащей музыки в реальном времени (32 полосы частот).
+- **Interactive Seek Bar / Полоса перемотки трека**: Наглядный слайдер с отображением текущего времени и длительности трека, позволяющий перематывать композицию кликом или перетаскиванием.
+- **Pin Panel / Закрепление панели**: Кнопка с иконкой звезды (★) позволяет закрепить панель на экране, чтобы она не скрывалась автоматически при уводе курсора.
+- **Large & Small Modes / Большой и маленький режимы**: Двойной клик по фону карточки переключает режим отображения:
+  - **Большой режим**: Полноразмерная панель с обложкой, информацией о треке, кнопками управления, визуализатором частот и полосой перемотки.
+  - **Маленький режим**: Компактный режим с названием, исполнителем и кнопками управления (обложка, визуализатор и перемотка скрываются).
+- **Windows SMTC Integration**: Управление воспроизведением (пауза/старт, следующий/предыдущий трек, перемотка) напрямую через системный SMTC Яндекс Музыки.
+
+---
+
+## Requirements / Требования
 
 - Windows 10 / Windows 11
 - Python 3.10+
-- Yandex Music desktop app
+- Yandex Music desktop app (`Яндекс Музыка.exe`)
 
-## Installation
+---
 
-Install dependencies:
+## Installation / Установка
+
+1. Клонируйте репозиторий / Clone repository:
+   ```bash
+   git clone https://github.com/user/yandex-music-panel.git
+   cd yandex-music-panel
+   ```
+
+2. Установите зависимости / Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+---
+
+## Usage / Использование
+
+Запустите панель без консольного окна / Run the panel without console window:
 
 ```bash
-pip install -r requirements.txt
+pythonw yandex-liquid-panel.pyw
+```
+
+или запускайте обычным Python / or using standard Python:
+
+```bash
+python yandex-liquid-panel.pyw
+```
+
+### Управление / Controls:
+- **Наведение на верхнюю часть экрана (по центру)**: Показать панель.
+- **Перетаскивание**: Зажмите ЛКМ на карточке для перемещения панели.
+- **Двойной клик по карточке**: Переключение между Большим и Маленьким режимами.
+- **Кнопка ★**: Закрепить / Открепить панель.
+- **Полоса перемотки**: Клик или перетаскивание для перехода к нужному моменту трека.

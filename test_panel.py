@@ -131,6 +131,22 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Pin Toggle and Tooltips
+    assert panel.pinned is False, "Panel should initialize unpinned"
+    assert "Закрепить" in panel.pin_btn.toolTip()
+
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after click"
+    assert "Открепить" in panel.pin_btn.toolTip()
+
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Panel should be unpinned after second click"
+    assert "Закрепить" in panel.pin_btn.toolTip()
+
+    # 5. Test SpectrumVisualizer state update
+    panel.update_media({"playing": True, "position": 10.0, "duration": 200.0, "title": "Test Track", "artist": "Test Artist"})
+    assert panel.visualizer.playing is True, "Visualizer should set playing to True"
+
     print("All tests passed successfully!")
 
 if __name__ == "__main__":
