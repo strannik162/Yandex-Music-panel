@@ -924,6 +924,12 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+        self.play_btn.setToolTip("Воспроизведение / Пауза | Play / Pause")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+        self.close_btn.setToolTip("Закрыть / Close")
+
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
         self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
@@ -1040,9 +1046,11 @@ class LiquidMusicPanel(QWidget):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
         self.pin_btn.update()
-
         if self.pinned:
+            self.pin_btn.setToolTip("Открепить панель / Unpin panel")
             self.show_panel()
+        else:
+            self.pin_btn.setToolTip("Закрепить панель / Pin panel")
 
     def update_media(self, data: dict):
         title = data.get("title") or "Яндекс Музыка не найдена"
@@ -1079,6 +1087,7 @@ class LiquidMusicPanel(QWidget):
         # Disconnect geometry animation finished signal to prevent stale callbacks
         if hasattr(self, "geo_anim"):
             try:
+                self.geo_anim.stop()
                 self.geo_anim.finished.disconnect()
             except Exception:
                 pass
