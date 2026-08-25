@@ -36,6 +36,28 @@ def test_panel_behavior():
     assert panel.visualizer.isVisible() is True, "Visualizer should be visible in Large mode"
     assert panel.slider.isVisible() is True, "Slider should be visible in Large mode"
 
+    # Verify tooltips
+    assert "Предыдущий" in panel.prev_btn.toolTip(), "prev_btn should have tooltip"
+    assert "Воспроизведение" in panel.play_btn.toolTip(), "play_btn should have tooltip"
+    assert "Следующий" in panel.next_btn.toolTip(), "next_btn should have tooltip"
+    assert "Закрепить" in panel.pin_btn.toolTip(), "pin_btn should have initial pin tooltip"
+    assert "Закрыть" in panel.close_btn.toolTip(), "close_btn should have tooltip"
+
+    # Test pinning toggle
+    assert panel.pinned is False, "Should default to unpinned"
+    panel._toggle_pin()
+    assert panel.pinned is True, "Should be pinned after toggle"
+    assert "Открепить" in panel.pin_btn.toolTip(), "pin_btn tooltip should update when pinned"
+    panel._toggle_pin()
+    assert panel.pinned is False, "Should be unpinned after toggle"
+    assert "Закрепить" in panel.pin_btn.toolTip(), "pin_btn tooltip should revert when unpinned"
+
+    # Test Spectrum Visualizer playing state
+    panel.update_media({"title": "Test Track", "artist": "Test Artist", "playing": True, "position": 10.0, "duration": 200.0})
+    assert panel.visualizer.playing is True, "Visualizer should be playing when media is playing"
+    panel.update_media({"title": "Test Track", "artist": "Test Artist", "playing": False, "position": 10.0, "duration": 200.0})
+    assert panel.visualizer.playing is False, "Visualizer should not be playing when media is paused"
+
     # Let's mock a mouse event class with needed methods for PySide6 compatibility
     class MockMouseEvent:
         def __init__(self, button, local_pos, global_pos):
