@@ -919,10 +919,19 @@ class LiquidMusicPanel(QWidget):
         self.app_label.setStyleSheet("color: rgba(255,255,255,110); background: transparent;")
 
         self.prev_btn = CircleIconButton("prev")
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+
         self.play_btn = CircleIconButton("play", accent=True)
+        self.play_btn.setToolTip("Воспроизведение / Пауза (Play / Pause)")
+
         self.next_btn = CircleIconButton("next")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+
         self.pin_btn = CircleIconButton("pin")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+
         self.close_btn = CircleIconButton("close", danger=True)
+        self.close_btn.setToolTip("Закрыть / Close")
 
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
@@ -1039,6 +1048,7 @@ class LiquidMusicPanel(QWidget):
     def _toggle_pin(self):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
+        self.pin_btn.setToolTip("Открепить панель / Unpin panel" if self.pinned else "Закрепить панель / Pin panel")
         self.pin_btn.update()
 
         if self.pinned:
