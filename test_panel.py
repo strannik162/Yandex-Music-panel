@@ -131,6 +131,23 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Pin Button Toggle and Tooltips
+    assert panel.prev_btn.toolTip() == "Предыдущий трек / Previous track"
+    assert panel.play_btn.toolTip() == "Воспроизвести/Пауза / Play/Pause"
+    assert panel.next_btn.toolTip() == "Следующий трек / Next track"
+    assert panel.close_btn.toolTip() == "Закрыть / Close"
+
+    assert panel.pinned is False, "Should initialize unpinned"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Should be pinned after click"
+    assert panel.pin_btn.toolTip() == "Открепить панель / Unpin panel"
+
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Should be unpinned after second click"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+
     print("All tests passed successfully!")
 
 if __name__ == "__main__":
