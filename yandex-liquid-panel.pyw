@@ -924,6 +924,13 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+        self.play_btn.setToolTip("Воспроизведение/Пауза / Play/Pause")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+        self.close_btn.setToolTip("Закрыть / Close")
+        self.card.setToolTip("Двойной клик — переключить размер (Большой/Маленький) | Перетаскивание — переместить\nDouble click — toggle size | Drag — move panel")
+
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
         self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
@@ -1040,6 +1047,7 @@ class LiquidMusicPanel(QWidget):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
         self.pin_btn.update()
+        self.pin_btn.setToolTip("Открепить панель / Unpin panel" if self.pinned else "Закрепить панель / Pin panel")
 
         if self.pinned:
             self.show_panel()

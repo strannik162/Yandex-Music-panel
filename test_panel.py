@@ -36,6 +36,22 @@ def test_panel_behavior():
     assert panel.visualizer.isVisible() is True, "Visualizer should be visible in Large mode"
     assert panel.slider.isVisible() is True, "Slider should be visible in Large mode"
 
+    # Verify tooltips are initialized
+    assert "Previous track" in panel.prev_btn.toolTip(), "prev_btn should have tooltip"
+    assert "Play/Pause" in panel.play_btn.toolTip(), "play_btn should have tooltip"
+    assert "Next track" in panel.next_btn.toolTip(), "next_btn should have tooltip"
+    assert "Pin panel" in panel.pin_btn.toolTip(), "pin_btn should have initial tooltip"
+    assert "Close" in panel.close_btn.toolTip(), "close_btn should have tooltip"
+
+    # Test Pin toggle
+    assert panel.pinned is False, "Panel should initially not be pinned"
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after clicking pin_btn"
+    assert "Unpin panel" in panel.pin_btn.toolTip(), "pin_btn tooltip should update to Unpin"
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Panel should be unpinned after clicking pin_btn again"
+    assert "Pin panel" in panel.pin_btn.toolTip(), "pin_btn tooltip should revert to Pin"
+
     # Let's mock a mouse event class with needed methods for PySide6 compatibility
     class MockMouseEvent:
         def __init__(self, button, local_pos, global_pos):
@@ -100,9 +116,9 @@ def test_panel_behavior():
     assert panel.pos() == QPoint(130, 160), f"Expected panel to move to (130, 160), got {panel.pos()}"
 
     # 3. Test Slider Seek Emission
-    emitted_seek = []
+    emitted_actions = []
 
-    panel.action_requested.connect(lambda action, val: emitted_seek.append((action, val)))
+    panel.action_requested.connect(lambda action, val: emitted_actions.append((action, val)))
 
     # Force some duration on the slider
     panel.slider.set_media_state(0.0, 100.0, False)
@@ -128,8 +144,16 @@ def test_panel_behavior():
     panel.slider.mousePressEvent(press_slider)
     panel.slider.mouseReleaseEvent(press_slider)
 
-    assert len(emitted_seek) == 1, "Should have emitted seek action once"
-    assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
+    assert ("seek", 50.0) in emitted_actions, f"Expected ('seek', 50.0) in emitted_actions, got {emitted_actions}"
+
+    # Test control button signals
+    panel.prev_btn.click()
+    panel.play_btn.click()
+    panel.next_btn.click()
+
+    assert ("prev", None) in emitted_actions, "prev action should be emitted"
+    assert ("play_pause", None) in emitted_actions, "play_pause action should be emitted"
+    assert ("next", None) in emitted_actions, "next action should be emitted"
 
     print("All tests passed successfully!")
 
