@@ -611,7 +611,18 @@ class SpectrumVisualizer(QWidget):
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            # Dynamic frequency coloring based on frequency band and amplitude (loudness)
+            intensity = min(255, int(140 + (bar_h / 24.0) * 115))
+            if i < 8:
+                # Bass / low frequencies
+                color = QColor(255, int(180 + (bar_h / 24.0) * 75), 180, intensity)
+            elif i < 20:
+                # Mid frequencies
+                color = QColor(220, 235, 255, intensity)
+            else:
+                # High / treble frequencies
+                color = QColor(180, 220, 255, intensity)
+
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
@@ -919,10 +930,15 @@ class LiquidMusicPanel(QWidget):
         self.app_label.setStyleSheet("color: rgba(255,255,255,110); background: transparent;")
 
         self.prev_btn = CircleIconButton("prev")
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
         self.play_btn = CircleIconButton("play", accent=True)
+        self.play_btn.setToolTip("Воспроизведение / Пауза (Play / Pause)")
         self.next_btn = CircleIconButton("next")
+        self.next_btn.setToolTip("Следующий трек / Next track")
         self.pin_btn = CircleIconButton("pin")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
         self.close_btn = CircleIconButton("close", danger=True)
+        self.close_btn.setToolTip("Закрыть / Close")
 
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
@@ -1039,6 +1055,7 @@ class LiquidMusicPanel(QWidget):
     def _toggle_pin(self):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
+        self.pin_btn.setToolTip("Открепить панель / Unpin panel" if self.pinned else "Закрепить панель / Pin panel")
         self.pin_btn.update()
 
         if self.pinned:
