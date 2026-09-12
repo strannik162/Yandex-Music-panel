@@ -1,26 +1,35 @@
 # Yandex Music Panel
 
-A Windows liquid-glass overlay panel for Yandex Music with track cover, title, artist, and playback controls.
+Улучшенная плавающая панель управления для Яндекс Музыки в стиле Liquid Glass для Windows.
 
-## Features
+## Возможности / Features
 
-- Liquid-glass style overlay
-- Shows track title and artist
-- Shows track cover
-- Play / pause button
-- Previous and next track buttons
-- Works with Yandex Music through Windows media controls
-- Can be launched as `.pyw` without a console window
+- **Перемещение панели (Drag & Drop):** Зажмите левую кнопку мыши на карточке и перетащите панель в любое удобное место экрана.
+- **Спектральный визуализатор частот (Spectrum Visualizer):** Анимированная графическая полоса отображает частоты и громкость звучания музыки в реальном времени.
+- **Перемотка трека (Seek Slider):** Интерактивная полоса прогресса с отображением текущего времени и общей длительности трека для точной перемотки.
+- **Закрепление панели (Pin Window):** Кнопка со звездой (★) позволяет закрепить панель на экране, чтобы она не скрывалась автоматически при уходе курсора.
+- **Режимы отображения (Large & Small Mode):**
+  - **Большой режим (Large):** Отображает обложку альбома, название трека, исполнителя, кнопки управления, аудио-визуализатор и полосу перемотки.
+  - **Маленький режим (Small):** Двойной клик по панели переключает в компактный вид, скрывая обложку, визуализатор и полосу перемотки.
+- **Интеграция с Windows Media Controls (SMTC):** Управление воспроизведением (Пауза/Плей, Следующий/Предыдущий трек).
+- **Фоновый запуск:** Запуск через `.pyw` без отображения консольного окна.
 
-## Requirements
+## Требования / Requirements
 
 - Windows 10 / Windows 11
 - Python 3.10+
-- Yandex Music desktop app
+- Приложение Яндекс Музыка для Windows
 
-## Installation
+## Установка и запуск / Installation & Usage
 
-Install dependencies:
+Установка зависимостей:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Запуск панели:
+
+```bash
+pythonw yandex-liquid-panel.pyw
+```
