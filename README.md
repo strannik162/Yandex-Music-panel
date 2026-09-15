@@ -4,13 +4,15 @@ A Windows liquid-glass overlay panel for Yandex Music with track cover, title, a
 
 ## Features
 
-- Liquid-glass style overlay
-- Shows track title and artist
-- Shows track cover
-- Play / pause button
-- Previous and next track buttons
-- Works with Yandex Music through Windows media controls
-- Can be launched as `.pyw` without a console window
+- **Liquid-glass style overlay** with native Windows top-most positioning.
+- **Draggable panel**: Click and drag the panel anywhere on your screen.
+- **Spectrum Frequency Visualizer**: Audio visualizer displaying low (bass), mid, and high (treble) frequency spectrum distributions and loudness intensity.
+- **Track Seek Bar / Slider**: Seek forward or backward by clicking or dragging along the progress bar with real-time time codes.
+- **Large & Small Modes**: Double-click the panel background to toggle between Large (full controls, visualizer, slider, and album art) and Small (compact minimal view) modes.
+- **Pin / Unpin Panel**: Pin button keeps the panel always visible regardless of hover auto-hide.
+- **Playback Controls**: Play/pause, previous track, next track with bilingual Russian/English tooltips.
+- Works seamlessly with Yandex Music via Windows System Media Transport Controls (SMTC).
+- Can be launched as `.pyw` without a console window.
 
 ## Requirements
 

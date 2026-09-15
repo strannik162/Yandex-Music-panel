@@ -611,7 +611,22 @@ class SpectrumVisualizer(QWidget):
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            # Frequency band color distribution: Bass (low), Mids (mid), Treble (high)
+            if i < 10:
+                # Bass: Vibrant cyan-blue
+                r, g, b = 70, 180, 255
+            elif i < 22:
+                # Mids: Bright turquoise / emerald
+                r, g, b = 100, 230, 190
+            else:
+                # Treble: Magenta-pink / violet
+                r, g, b = 240, 140, 230
+
+            # Loudness intensity scaling
+            loudness_ratio = min(1.0, max(0.0, bar_h / 26.0))
+            alpha = int(120 + loudness_ratio * 135)
+
+            color = QColor(r, g, b, alpha)
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
@@ -924,6 +939,12 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+        self.play_btn.setToolTip("Воспроизведение / Пауза (Play / Pause)")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+        self.close_btn.setToolTip("Закрыть панель / Close panel")
+
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
         self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
@@ -1039,6 +1060,7 @@ class LiquidMusicPanel(QWidget):
     def _toggle_pin(self):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
+        self.pin_btn.setToolTip("Открепить панель / Unpin panel" if self.pinned else "Закрепить панель / Pin panel")
         self.pin_btn.update()
 
         if self.pinned:
