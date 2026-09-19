@@ -131,6 +131,12 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Pin Button Toggling and Tooltips
+    assert "Закрепить" in panel.pin_btn.toolTip(), "Pin button should have initial pin tooltip"
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after pin button click"
+    assert "Открепить" in panel.pin_btn.toolTip(), "Pin button should have unpin tooltip when pinned"
+
     print("All tests passed successfully!")
 
 if __name__ == "__main__":
