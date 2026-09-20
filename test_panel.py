@@ -131,6 +131,22 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Pin Button Toggling and Tooltips
+    assert panel.pinned is False, "Panel should start unpinned"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after clicking pin button"
+    assert panel.pin_btn.toolTip() == "Открепить панель / Unpin panel"
+
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Panel should be unpinned after clicking pin button again"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+
+    # 5. Test Visualizer Playing State
+    panel.update_media({"title": "Test Title", "artist": "Test Artist", "playing": True, "position": 10.0, "duration": 200.0})
+    assert panel.visualizer.playing is True, "Visualizer should set playing to True when media is playing"
+
     print("All tests passed successfully!")
 
 if __name__ == "__main__":
