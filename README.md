@@ -1,26 +1,38 @@
-# Yandex Music Panel
+# Yandex Music Panel (Панель Яндекс Музыки)
 
-A Windows liquid-glass overlay panel for Yandex Music with track cover, title, artist, and playback controls.
+A sleek, desktop liquid-glass overlay panel for Yandex Music on Windows with interactive playback controls, spectrum visualizer, track seeking, pinning, and mode toggling.
 
-## Features
+Панель поверх всех окон в стиле «Liquid Glass» для управления Яндекс Музыкой на Windows.
 
-- Liquid-glass style overlay
-- Shows track title and artist
-- Shows track cover
-- Play / pause button
-- Previous and next track buttons
-- Works with Yandex Music through Windows media controls
-- Can be launched as `.pyw` without a console window
+## Features / Возможности
 
-## Requirements
+- **Liquid-Glass Design**: Элегантный полупрозрачный интерфейс с размытием и скругленными углами.
+- **Draggable Panel / Перемещение**: Возможность перетаскивать панель зажатием левой кнопки мыши в любое удобное место экрана.
+- **Spectrum Visualizer / Визуализатор частот**: Динамическое отображение частот звучащей музыки в реальном времени (басы, средние и высокие частоты).
+- **Track Seeking / Перемотка трека**: Интерактивная полоса прогресса с отображением текущего времени и длительности трека, поддерживающая клик и перетаскивание.
+- **Pin Overlay / Закрепление панели**: Кнопка с иконкой звезды (★) позволяет закрепить панель на экране, предотвращая авто-скрытие.
+- **Large & Small Modes / Большой и маленький режим**: Двойной клик по карточке переключает режим отображения:
+  - **Большой режим**: полное отображение с обложкой, информацией о треке, визуализатором и полосой перемотки.
+  - **Маленький режим**: компактный вид только с информацией и кнопками управления.
+- **Media Controls**: Кнопки Воспроизведение/Пауза, Предыдущий и Следующий трек с русско-английскими всплывающими подсказками.
+- **Background Execution**: Запуск через `.pyw` без отображения консольного окна.
+
+## Requirements / Требования
 
 - Windows 10 / Windows 11
 - Python 3.10+
-- Yandex Music desktop app
+- Приложение Яндекс Музыка (Yandex Music desktop app)
 
-## Installation
+## Installation / Установка
 
-Install dependencies:
+Установите зависимости:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Запуск приложения:
+
+```bash
+pythonw yandex-liquid-panel.pyw
+```
