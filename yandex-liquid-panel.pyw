@@ -611,7 +611,18 @@ class SpectrumVisualizer(QWidget):
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            # Dynamic band coloring: Bass (cyan/teal), Mid (violet/purple), Treble (coral/pink)
+            intensity = min(1.0, bar_h / 24.0)
+            if i < 8:
+                # Bass
+                color = QColor(100, 210, 255, int(150 + intensity * 95))
+            elif i < 20:
+                # Mid
+                color = QColor(190, 150, 255, int(150 + intensity * 95))
+            else:
+                # Treble
+                color = QColor(255, 140, 190, int(150 + intensity * 95))
+
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
@@ -924,6 +935,12 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
+        self.prev_btn.setToolTip("Предыдущий трек / Previous Track")
+        self.play_btn.setToolTip("Воспроизведение/Пауза / Play/Pause")
+        self.next_btn.setToolTip("Следующий трек / Next Track")
+        self.pin_btn.setToolTip("Закрепить панель / Pin Panel")
+        self.close_btn.setToolTip("Закрыть / Close")
+
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
         self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
@@ -1040,9 +1057,11 @@ class LiquidMusicPanel(QWidget):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
         self.pin_btn.update()
-
         if self.pinned:
+            self.pin_btn.setToolTip("Открепить панель / Unpin Panel")
             self.show_panel()
+        else:
+            self.pin_btn.setToolTip("Закрепить панель / Pin Panel")
 
     def update_media(self, data: dict):
         title = data.get("title") or "Яндекс Музыка не найдена"
