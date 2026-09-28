@@ -611,7 +611,27 @@ class SpectrumVisualizer(QWidget):
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            # Dynamic frequency coloring: Bass (lows), Mids, Treble (highs)
+            intensity = min(1.0, max(0.3, bar_h / 24.0))
+            if i < 8:
+                # Bass range (low frequencies - warm accent)
+                r = int(255 * intensity)
+                g = int(120 * intensity + 80)
+                b = int(150 + 105 * (1 - intensity))
+            elif i < 20:
+                # Mid range (mid frequencies - vibrant cyan/blue)
+                r = int(100 + 100 * (1 - intensity))
+                g = int(200 * intensity + 55)
+                b = 255
+            else:
+                # Treble range (high frequencies - bright violet)
+                r = int(200 * intensity + 55)
+                g = int(160 * intensity + 60)
+                b = 255
+
+            alpha = int(140 + 115 * intensity)
+            color = QColor(r, g, b, alpha)
+
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
