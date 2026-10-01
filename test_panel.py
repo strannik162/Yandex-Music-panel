@@ -131,6 +131,23 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Visualizer Properties
+    assert panel.visualizer.bars == 32, "Visualizer should have 32 bars"
+    panel.visualizer.set_playing(True)
+    assert panel.visualizer.playing is True, "Visualizer playing state should update to True"
+
+    # 5. Test Pin Button Toggle and Dynamic Tooltips
+    assert panel.pinned is False, "Panel should not be pinned initially"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after pin_btn click"
+    assert panel.pin_btn.toolTip() == "Открепить панель / Unpin panel"
+
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Panel should be unpinned after second pin_btn click"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+
     print("All tests passed successfully!")
 
 if __name__ == "__main__":
