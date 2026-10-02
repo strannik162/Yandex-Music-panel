@@ -1,26 +1,37 @@
-# Yandex Music Panel
+# Yandex Music Liquid Panel
 
-A Windows liquid-glass overlay panel for Yandex Music with track cover, title, artist, and playback controls.
+Оверлей-панель в стиле Liquid Glass для Яндекс Музыки на Windows с расширенными возможностями управления, эквалайзером и перемоткой.
 
-## Features
+## Возможности / Features
 
-- Liquid-glass style overlay
-- Shows track title and artist
-- Shows track cover
-- Play / pause button
-- Previous and next track buttons
-- Works with Yandex Music through Windows media controls
-- Can be launched as `.pyw` without a console window
+- **Перемещение панели (Draggable Panel):** Перетаскивайте панель мышью в любое удобное место на экране.
+- **Интерактивная перемотка (Track Seek Slider):** Полоса прогресса с отображением текущего и оставшегося времени трека и поддержкой перемотки кликом или перетаскиванием.
+- **Графический спектроанализатор (Frequency Visualizer):** Анимированная полоса с 32 спектральными барами, наглядно отображающая частоты (басы, средние и высокие частоты) и громкость музыки в реальном времени.
+- **Закрепление панели (Pin Panel):** Кнопка со звездой (★) позволяет закрепить панель на экране, чтобы она не скрывалась автоматически при уходе курсора.
+- **Режимы отображения (Large & Small Mode):** Двойной клик по панели переключает между Компактным (Small) и Полным (Large) режимами. В компактном режиме скрываются обложка, эквалайзер и полоса перемотки.
+- **Интеграция с Яндекс Музыкой:** Отображение названия трека, исполнителя, обложки альбома и управление воспроизведением (пауза/старт, предыдущий/следующий трек).
+- **Запуск без консоли:** Файл `.pyw` запускается в фоновом режиме Windows без лишних окон.
 
-## Requirements
+## Требования / Requirements
 
 - Windows 10 / Windows 11
 - Python 3.10+
-- Yandex Music desktop app
+- Приложение Яндекс Музыка
 
-## Installation
+## Установка и запуск / Installation & Usage
 
-Install dependencies:
-
+1. Установите зависимости:
 ```bash
 pip install -r requirements.txt
+```
+
+2. Запустите панель:
+```bash
+pythonw yandex-liquid-panel.pyw
+```
+
+3. Для проверки в headless-среде запустите тесты:
+```bash
+export QT_QPA_PLATFORM=offscreen
+python3 test_panel.py
+```

@@ -611,7 +611,20 @@ class SpectrumVisualizer(QWidget):
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            # Dynamic band-based tinting and amplitude brightness
+            if i < 8:
+                # Bass frequency band
+                alpha = int(140 + min(115, bar_h * 4.5))
+                color = QColor(255, 200, 215, alpha)
+            elif i < 20:
+                # Mid frequency band
+                alpha = int(140 + min(115, bar_h * 5.5))
+                color = QColor(210, 230, 255, alpha)
+            else:
+                # Treble frequency band
+                alpha = int(140 + min(115, bar_h * 7.5))
+                color = QColor(225, 255, 235, alpha)
+
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
@@ -924,6 +937,12 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+        self.play_btn.setToolTip("Воспроизведение / Пауза | Play / Pause")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+        self.close_btn.setToolTip("Закрыть / Close")
+
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
         self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
@@ -1039,6 +1058,7 @@ class LiquidMusicPanel(QWidget):
     def _toggle_pin(self):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
+        self.pin_btn.setToolTip("Открепить панель / Unpin panel" if self.pinned else "Закрепить панель / Pin panel")
         self.pin_btn.update()
 
         if self.pinned:
