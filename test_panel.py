@@ -131,6 +131,20 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Pin Tooltip Toggling
+    assert panel.pinned is False, "Panel should initially be unpinned"
+    assert "Закрепить" in panel.pin_btn.toolTip(), "Initial pin tooltip should say 'Закрепить'"
+
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after clicking pin button"
+    assert "Открепить" in panel.pin_btn.toolTip(), "Pinned tooltip should say 'Открепить'"
+
+    # 5. Test Spectrum Visualizer Height Updates when Playing
+    panel.visualizer.set_playing(True)
+    initial_heights = list(panel.visualizer.heights)
+    panel.visualizer._update_heights()
+    assert panel.visualizer.heights != initial_heights, "Visualizer bar heights should update when playing"
+
     print("All tests passed successfully!")
 
 if __name__ == "__main__":
