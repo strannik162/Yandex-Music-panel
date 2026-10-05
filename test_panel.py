@@ -29,6 +29,22 @@ def test_panel_behavior():
     if hasattr(panel, "hover_timer") and panel.hover_timer.isActive():
         panel.hover_timer.stop()
 
+    # Verify control button tooltips
+    assert panel.prev_btn.toolTip() == "Предыдущий трек / Previous track", "prev_btn tooltip mismatch"
+    assert panel.play_btn.toolTip() == "Воспроизведение / Пауза (Play / Pause)", "play_btn tooltip mismatch"
+    assert panel.next_btn.toolTip() == "Следующий трек / Next track", "next_btn tooltip mismatch"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel", "pin_btn tooltip mismatch"
+    assert panel.close_btn.toolTip() == "Закрыть / Close", "close_btn tooltip mismatch"
+
+    # Verify pin toggle and dynamic tooltip update
+    assert panel.pinned is False, "Panel should initialize unpinned"
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after click"
+    assert panel.pin_btn.toolTip() == "Открепить панель / Unpin panel", "pin_btn tooltip should update when pinned"
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Panel should be unpinned after second click"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel", "pin_btn tooltip should revert when unpinned"
+
     # Verify default state
     assert panel.is_large is True, "Should initialize in Large mode"
     assert panel.height() == panel_module.PANEL_H_LARGE, "Should have PANEL_H_LARGE height"
