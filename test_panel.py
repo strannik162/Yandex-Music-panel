@@ -131,7 +131,8 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
-    print("All tests passed successfully!")
+    print("All tests passed successfully!", flush=True)
+    os._exit(0)
 
 if __name__ == "__main__":
     test_panel_behavior()
