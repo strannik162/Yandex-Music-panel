@@ -131,6 +131,24 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Pin Toggle
+    assert panel.pinned is False, "Panel should initially not be pinned"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel", "Initial pin tooltip mismatch"
+
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after click"
+    assert panel.pin_btn.toolTip() == "Открепить панель / Unpin panel", "Pinned tooltip mismatch"
+
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Panel should be unpinned after second click"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel", "Unpinned tooltip mismatch"
+
+    # 5. Test Button Tooltips
+    assert panel.prev_btn.toolTip() != "", "Prev button tooltip missing"
+    assert panel.play_btn.toolTip() != "", "Play button tooltip missing"
+    assert panel.next_btn.toolTip() != "", "Next button tooltip missing"
+    assert panel.close_btn.toolTip() != "", "Close button tooltip missing"
+
     print("All tests passed successfully!")
 
 if __name__ == "__main__":
