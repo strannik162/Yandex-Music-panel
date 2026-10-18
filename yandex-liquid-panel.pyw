@@ -602,16 +602,41 @@ class SpectrumVisualizer(QWidget):
         painter.setRenderHint(QPainter.Antialiasing, True)
 
         w = self.width()
-        h = self.height()
+        h = float(self.height())
         gap = 2
         bar_w = (w - (self.bars - 1) * gap) / self.bars
 
         for i in range(self.bars):
-            bar_h = self.heights[i]
+            bar_h = max(1.5, min(self.heights[i], h))
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            intensity = min(1.0, bar_h / 24.0)
+
+            if not self.playing:
+                color = QColor(255, 255, 255, 70)
+            elif i < 8:
+                # Bass frequency band: dynamic warm purple/red-pink tone
+                r = int(220 + 35 * intensity)
+                g = int(60 + 80 * (1 - intensity))
+                b = int(180 + 75 * intensity)
+                alpha = int(160 + 95 * intensity)
+                color = QColor(r, g, b, alpha)
+            elif i < 20:
+                # Mid frequency band: dynamic cyan/sky blue tone
+                r = int(60 + 70 * (1 - intensity))
+                g = int(160 + 95 * intensity)
+                b = int(240 + 15 * intensity)
+                alpha = int(150 + 100 * intensity)
+                color = QColor(r, g, b, alpha)
+            else:
+                # Treble frequency band: dynamic bright aqua/light lavender tone
+                r = int(180 + 75 * intensity)
+                g = int(220 + 35 * intensity)
+                b = int(255)
+                alpha = int(140 + 115 * intensity)
+                color = QColor(r, g, b, alpha)
+
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
@@ -924,6 +949,12 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+        self.play_btn.setToolTip("Воспроизведение / Пауза (Play / Pause)")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+        self.close_btn.setToolTip("Закрыть приложение / Close app")
+
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
         self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
@@ -1040,9 +1071,11 @@ class LiquidMusicPanel(QWidget):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
         self.pin_btn.update()
-
         if self.pinned:
+            self.pin_btn.setToolTip("Открепить панель / Unpin panel")
             self.show_panel()
+        else:
+            self.pin_btn.setToolTip("Закрепить панель / Pin panel")
 
     def update_media(self, data: dict):
         title = data.get("title") or "Яндекс Музыка не найдена"
