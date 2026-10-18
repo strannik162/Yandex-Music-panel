@@ -36,6 +36,27 @@ def test_panel_behavior():
     assert panel.visualizer.isVisible() is True, "Visualizer should be visible in Large mode"
     assert panel.slider.isVisible() is True, "Slider should be visible in Large mode"
 
+    # Verify button tooltips
+    assert "Предыдущий трек" in panel.prev_btn.toolTip()
+    assert "Воспроизведение" in panel.play_btn.toolTip()
+    assert "Следующий трек" in panel.next_btn.toolTip()
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+    assert "Закрыть приложение" in panel.close_btn.toolTip()
+
+    # Test Pin Button toggle and tooltip update
+    panel._toggle_pin()
+    assert panel.pinned is True
+    assert panel.pin_btn.toolTip() == "Открепить панель / Unpin panel"
+    panel._toggle_pin()
+    assert panel.pinned is False
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+
+    # Test Visualizer playing state
+    panel.visualizer.set_playing(True)
+    assert panel.visualizer.playing is True
+    panel.visualizer.set_playing(False)
+    assert panel.visualizer.playing is False
+
     # Let's mock a mouse event class with needed methods for PySide6 compatibility
     class MockMouseEvent:
         def __init__(self, button, local_pos, global_pos):
