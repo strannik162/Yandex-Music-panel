@@ -132,6 +132,7 @@ def test_panel_behavior():
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
     print("All tests passed successfully!")
+    os._exit(0)
 
 if __name__ == "__main__":
     test_panel_behavior()
