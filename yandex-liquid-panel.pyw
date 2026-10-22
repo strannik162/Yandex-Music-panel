@@ -611,7 +611,21 @@ class SpectrumVisualizer(QWidget):
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            # Alpha and brightness scaled by amplitude (loudness)
+            intensity = min(1.0, max(0.1, bar_h / 24.0))
+            alpha = int(110 + intensity * 145)
+
+            # Color spectrum according to frequency band (Bass, Mid, Treble)
+            if i < 8:
+                # Bass: Deep cyan / blue accent
+                color = QColor(100, 200, 255, alpha)
+            elif i < 20:
+                # Mid frequencies: Clean bright white / icy blue
+                color = QColor(220, 240, 255, alpha)
+            else:
+                # Treble: Soft purple / violet tint
+                color = QColor(210, 180, 255, alpha)
+
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
@@ -924,6 +938,12 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+        self.play_btn.setToolTip("Воспроизведение / Пауза (Play / Pause)")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+        self.close_btn.setToolTip("Закрыть / Close")
+
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
         self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
@@ -1042,7 +1062,10 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn.update()
 
         if self.pinned:
+            self.pin_btn.setToolTip("Открепить панель / Unpin panel")
             self.show_panel()
+        else:
+            self.pin_btn.setToolTip("Закрепить панель / Pin panel")
 
     def update_media(self, data: dict):
         title = data.get("title") or "Яндекс Музыка не найдена"

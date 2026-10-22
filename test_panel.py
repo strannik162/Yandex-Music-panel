@@ -36,6 +36,33 @@ def test_panel_behavior():
     assert panel.visualizer.isVisible() is True, "Visualizer should be visible in Large mode"
     assert panel.slider.isVisible() is True, "Slider should be visible in Large mode"
 
+    # Verify tooltips
+    assert panel.prev_btn.toolTip() == "Предыдущий трек / Previous track"
+    assert panel.play_btn.toolTip() == "Воспроизведение / Пауза (Play / Pause)"
+    assert panel.next_btn.toolTip() == "Следующий трек / Next track"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+    assert panel.close_btn.toolTip() == "Закрыть / Close"
+
+    # Test Pin Toggling
+    panel._toggle_pin()
+    assert panel.pinned is True, "Panel should be pinned after toggle"
+    assert panel.pin_btn.toolTip() == "Открепить панель / Unpin panel"
+
+    panel._toggle_pin()
+    assert panel.pinned is False, "Panel should be unpinned after second toggle"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+
+    # Test Visualizer Playing state
+    panel.visualizer.set_playing(True)
+    assert panel.visualizer.playing is True, "Visualizer should report playing state"
+    panel.visualizer._update_heights()
+    assert any(h > 2.0 for h in panel.visualizer.target_heights), "Heights should animate when playing"
+
+    panel.visualizer.set_playing(False)
+    assert panel.visualizer.playing is False, "Visualizer should report stopped state"
+    panel.visualizer._update_heights()
+    assert all(h == 2.0 for h in panel.visualizer.target_heights), "Target heights should reset to 2.0 when stopped"
+
     # Let's mock a mouse event class with needed methods for PySide6 compatibility
     class MockMouseEvent:
         def __init__(self, button, local_pos, global_pos):
@@ -132,6 +159,7 @@ def test_panel_behavior():
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
     print("All tests passed successfully!")
+    os._exit(0)
 
 if __name__ == "__main__":
     test_panel_behavior()
