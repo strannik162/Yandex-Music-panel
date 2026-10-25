@@ -135,3 +135,4 @@ def test_panel_behavior():
 
 if __name__ == "__main__":
     test_panel_behavior()
+    os._exit(0)
