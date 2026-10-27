@@ -131,7 +131,34 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Pin Button and Tooltips
+    assert panel.pinned is False, "Pin should be False by default"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel", f"Unexpected initial pin tooltip: {panel.pin_btn.toolTip()}"
+    assert panel.prev_btn.toolTip() == "Предыдущий трек / Previous track"
+    assert panel.play_btn.toolTip() == "Воспроизведение / Пауза (Play / Pause)"
+    assert panel.next_btn.toolTip() == "Следующий трек / Next track"
+    assert panel.close_btn.toolTip() == "Закрыть / Close"
+
+    panel._toggle_pin()
+    assert panel.pinned is True, "Pin should be True after toggle"
+    assert panel.pin_btn.toolTip() == "Открепить панель / Unpin panel", f"Unexpected pinned tooltip: {panel.pin_btn.toolTip()}"
+
+    panel._toggle_pin()
+    assert panel.pinned is False, "Pin should be False after second toggle"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin panel"
+
+    # 5. Test Spectrum Visualizer state updates
+    panel.visualizer.set_playing(True)
+    panel.visualizer._update_heights()
+    assert panel.visualizer.playing is True, "Visualizer should be playing"
+
+    panel.visualizer.set_playing(False)
+    panel.visualizer._update_heights()
+    assert panel.visualizer.playing is False, "Visualizer should not be playing"
+
     print("All tests passed successfully!")
+    sys.stdout.flush()
+    os._exit(0)
 
 if __name__ == "__main__":
     test_panel_behavior()
