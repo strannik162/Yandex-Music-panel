@@ -131,7 +131,22 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Pin Button and Tooltip updates
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin Panel"
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after pin_btn click"
+    assert panel.pin_btn.toolTip() == "Открепить панель / Unpin Panel"
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Panel should be unpinned after second click"
+    assert panel.pin_btn.toolTip() == "Закрепить панель / Pin Panel"
+
+    # 5. Test Visualizer set_playing and toolTip
+    assert "Bass / Mid / Treble" in panel.visualizer.toolTip()
+    panel.visualizer.set_playing(True)
+    assert panel.visualizer.playing is True
+
     print("All tests passed successfully!")
 
 if __name__ == "__main__":
     test_panel_behavior()
+    os._exit(0)
