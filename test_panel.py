@@ -131,7 +131,40 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
-    print("All tests passed successfully!")
+    # 4. Test Pin Button Toggle and Tooltip
+    assert panel.pinned is False, "Panel should start unpinned"
+    assert "Закрепить" in panel.pin_btn.toolTip(), f"Expected Pin tooltip, got {panel.pin_btn.toolTip()}"
+
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after clicking pin button"
+    assert panel.pin_btn.accent is True, "Pin button should have accent style when pinned"
+    assert "Открепить" in panel.pin_btn.toolTip(), f"Expected Unpin tooltip, got {panel.pin_btn.toolTip()}"
+
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Panel should be unpinned after clicking pin button again"
+    assert panel.pin_btn.accent is False, "Pin button should lose accent style when unpinned"
+    assert "Закрепить" in panel.pin_btn.toolTip(), f"Expected Pin tooltip, got {panel.pin_btn.toolTip()}"
+
+    # 5. Test Spectrum Visualizer Bands & Coloring
+    vis = panel.visualizer
+    assert vis.bars == 32, "Visualizer should have 32 bars"
+    assert vis.get_band(0) == "bass"
+    assert vis.get_band(7) == "bass"
+    assert vis.get_band(8) == "mid"
+    assert vis.get_band(19) == "mid"
+    assert vis.get_band(20) == "treble"
+    assert vis.get_band(31) == "treble"
+
+    bass_color = vis.get_band_color(0, 0.5)
+    mid_color = vis.get_band_color(10, 0.5)
+    treble_color = vis.get_band_color(25, 0.5)
+
+    assert bass_color.red() > bass_color.blue(), "Bass color should be warm (red > blue)"
+    assert mid_color.blue() > mid_color.red(), "Mid color should be cool/cyan (blue > red)"
+    assert treble_color.blue() > 0 and treble_color.red() > 0, "Treble color should be magenta/violet"
+
+    print("All tests passed successfully!", flush=True)
+    os._exit(0)
 
 if __name__ == "__main__":
     test_panel_behavior()
