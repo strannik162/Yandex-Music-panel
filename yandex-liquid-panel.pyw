@@ -570,6 +570,7 @@ class SpectrumVisualizer(QWidget):
         self.bars = 32
         self.heights = [2.0] * self.bars
         self.target_heights = [2.0] * self.bars
+        self.setToolTip("Спектр частот: Бас | Средние | Высокие / Frequency spectrum: Bass | Mid | Treble")
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._update_heights)
@@ -578,17 +579,49 @@ class SpectrumVisualizer(QWidget):
     def set_playing(self, playing: bool):
         self.playing = playing
 
+    def get_band(self, index: int) -> str:
+        if index < 8:
+            return "bass"
+        elif index < 20:
+            return "mid"
+        else:
+            return "treble"
+
+    def get_band_color(self, index: int, amplitude_ratio: float) -> QColor:
+        band = self.get_band(index)
+        ratio = max(0.0, min(1.0, amplitude_ratio))
+        alpha = int(140 + 115 * ratio)
+        if band == "bass":
+            # Bass: Warm amber/coral to punchy red-orange
+            r = 255
+            g = int(90 + 70 * (1.0 - ratio))
+            b = 50
+            return QColor(r, g, b, alpha)
+        elif band == "mid":
+            # Mids: Electric cyan to bright blue
+            r = int(20 + 40 * ratio)
+            g = int(190 + 65 * ratio)
+            b = 255
+            return QColor(r, g, b, alpha)
+        else:
+            # Treble: Vivid magenta/violet to crisp white-violet
+            r = int(190 + 65 * ratio)
+            g = int(120 + 80 * ratio)
+            b = 255
+            return QColor(r, g, b, alpha)
+
     def _update_heights(self):
+        max_h = float(self.height() - 4)
         if self.playing:
             for i in range(self.bars):
                 if i < 8:
-                    base = random.uniform(8, 24)
-                    thump = random.choice([0.0, 1.0]) * random.uniform(0, 6)
-                    self.target_heights[i] = base + thump
+                    base = random.uniform(8, 22)
+                    thump = random.choice([0.0, 1.0]) * random.uniform(0, 8)
+                    self.target_heights[i] = min(max_h, base + thump)
                 elif i < 20:
-                    self.target_heights[i] = random.uniform(4, 18)
+                    self.target_heights[i] = min(max_h, random.uniform(4, 20))
                 else:
-                    self.target_heights[i] = random.uniform(2, 12)
+                    self.target_heights[i] = min(max_h, random.uniform(3, 16))
         else:
             self.target_heights = [2.0] * self.bars
 
@@ -607,14 +640,19 @@ class SpectrumVisualizer(QWidget):
         bar_w = (w - (self.bars - 1) * gap) / self.bars
 
         for i in range(self.bars):
-            bar_h = self.heights[i]
+            bar_h = max(2.0, min(float(h), self.heights[i]))
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            ratio = bar_h / float(h)
+            color = self.get_band_color(i, ratio) if self.playing else QColor(255, 255, 255, 60)
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
+
+            if self.playing and ratio > 0.6:
+                painter.setBrush(QBrush(QColor(255, 255, 255, int(180 * ratio))))
+                painter.drawRoundedRect(QRectF(x, y, bar_w, 2.0), 1.0, 1.0)
 
 
 class CustomSlider(QWidget):
@@ -919,10 +957,19 @@ class LiquidMusicPanel(QWidget):
         self.app_label.setStyleSheet("color: rgba(255,255,255,110); background: transparent;")
 
         self.prev_btn = CircleIconButton("prev")
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+
         self.play_btn = CircleIconButton("play", accent=True)
+        self.play_btn.setToolTip("Воспроизведение / Play")
+
         self.next_btn = CircleIconButton("next")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+
         self.pin_btn = CircleIconButton("pin")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+
         self.close_btn = CircleIconButton("close", danger=True)
+        self.close_btn.setToolTip("Закрыть / Close")
 
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
@@ -957,6 +1004,7 @@ class LiquidMusicPanel(QWidget):
 
         self.visualizer = SpectrumVisualizer()
         self.slider = CustomSlider()
+        self.slider.setToolTip("Перемотка трека / Track seek")
         self.slider.seek_requested.connect(lambda pos: self.action_requested.emit("seek", pos))
 
         self.card_layout = QVBoxLayout(self.card)
@@ -1042,7 +1090,10 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn.update()
 
         if self.pinned:
+            self.pin_btn.setToolTip("Открепить панель / Unpin panel")
             self.show_panel()
+        else:
+            self.pin_btn.setToolTip("Закрепить панель / Pin panel")
 
     def update_media(self, data: dict):
         title = data.get("title") or "Яндекс Музыка не найдена"
@@ -1060,6 +1111,7 @@ class LiquidMusicPanel(QWidget):
             self.app_label.setText("Только Яндекс Музыка.exe")
 
         self.play_btn.set_icon("pause" if playing else "play")
+        self.play_btn.setToolTip("Пауза / Pause" if playing else "Воспроизведение / Play")
         self.cover.set_cover_bytes(data.get("cover"))
 
         self.visualizer.set_playing(playing)
