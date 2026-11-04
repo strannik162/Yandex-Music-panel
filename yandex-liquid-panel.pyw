@@ -611,7 +611,19 @@ class SpectrumVisualizer(QWidget):
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            intensity = min(1.0, bar_h / 24.0)
+            alpha = int(140 + 115 * intensity)
+
+            # Bass (0-7): warm coral / orange
+            # Mid (8-19): bright cyan / teal
+            # Treble (20-31): soft violet / magenta
+            if i < 8:
+                color = QColor(255, int(120 + 80 * (1.0 - intensity)), 80, alpha)
+            elif i < 20:
+                color = QColor(80, int(210 + 45 * intensity), 255, alpha)
+            else:
+                color = QColor(210, 130, 255, alpha)
+
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
@@ -924,6 +936,12 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+        self.play_btn.setToolTip("Воспроизведение / Пауза / Play / Pause")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+        self._update_pin_tooltip()
+        self.close_btn.setToolTip("Закрыть / Close")
+
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
         self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
@@ -956,8 +974,12 @@ class LiquidMusicPanel(QWidget):
         controls_widget.setFixedWidth(34 * 5 + 8 * 4 + 2)
 
         self.visualizer = SpectrumVisualizer()
+        self.visualizer.setToolTip("Визуализатор частот / Frequency Visualizer")
         self.slider = CustomSlider()
+        self.slider.setToolTip("Перемотка трека / Track seek")
         self.slider.seek_requested.connect(lambda pos: self.action_requested.emit("seek", pos))
+
+        self.card.setToolTip("Перетащите для перемещения, двойной клик для смены режима / Drag to move, double-click to toggle mode")
 
         self.card_layout = QVBoxLayout(self.card)
         self.card_layout.setContentsMargins(16, 16, 16, 16)
@@ -1036,10 +1058,17 @@ class LiquidMusicPanel(QWidget):
         except Exception:
             pass
 
+    def _update_pin_tooltip(self):
+        if self.pinned:
+            self.pin_btn.setToolTip("Открепить панель / Unpin panel")
+        else:
+            self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+
     def _toggle_pin(self):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
         self.pin_btn.update()
+        self._update_pin_tooltip()
 
         if self.pinned:
             self.show_panel()
