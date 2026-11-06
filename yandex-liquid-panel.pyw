@@ -611,7 +611,18 @@ class SpectrumVisualizer(QWidget):
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            # Dynamic band-based coloring with amplitude-dependent intensity:
+            # Low frequencies (Bass: 0-7): Cyan / Blue tint
+            # Mid frequencies (Mids: 8-19): Green / Emerald tint
+            # High frequencies (Treble: 20-31): Coral / Pink tint
+            intensity = min(1.0, max(0.4, bar_h / 24.0))
+            if i < 8:
+                color = QColor(int(100 + 155 * intensity), int(190 + 65 * intensity), 255, int(150 + 80 * intensity))
+            elif i < 20:
+                color = QColor(int(120 + 100 * intensity), 255, int(180 + 75 * intensity), int(150 + 80 * intensity))
+            else:
+                color = QColor(255, int(130 + 100 * intensity), int(170 + 85 * intensity), int(150 + 80 * intensity))
+
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
@@ -924,6 +935,12 @@ class LiquidMusicPanel(QWidget):
         self.pin_btn = CircleIconButton("pin")
         self.close_btn = CircleIconButton("close", danger=True)
 
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+        self.play_btn.setToolTip("Воспроизведение / Пауза (Play / Pause)")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+        self.close_btn.setToolTip("Закрыть / Close")
+
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
         self.next_btn.clicked.connect(lambda: self.action_requested.emit("next", None))
@@ -956,8 +973,11 @@ class LiquidMusicPanel(QWidget):
         controls_widget.setFixedWidth(34 * 5 + 8 * 4 + 2)
 
         self.visualizer = SpectrumVisualizer()
+        self.visualizer.setToolTip("Спектральный визуализатор частот / Audio frequency visualizer")
         self.slider = CustomSlider()
+        self.slider.setToolTip("Перемотка трека / Track seek bar")
         self.slider.seek_requested.connect(lambda pos: self.action_requested.emit("seek", pos))
+        self.card.setToolTip("Перетащите для перемещения | Двойной клик для смены режима (Большой/Маленький)\nDrag to move | Double click to toggle Compact/Full mode")
 
         self.card_layout = QVBoxLayout(self.card)
         self.card_layout.setContentsMargins(16, 16, 16, 16)
@@ -1039,6 +1059,7 @@ class LiquidMusicPanel(QWidget):
     def _toggle_pin(self):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
+        self.pin_btn.setToolTip("Открепить панель / Unpin panel" if self.pinned else "Закрепить панель / Pin panel")
         self.pin_btn.update()
 
         if self.pinned:
