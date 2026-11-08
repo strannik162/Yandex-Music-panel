@@ -131,7 +131,39 @@ def test_panel_behavior():
     assert len(emitted_seek) == 1, "Should have emitted seek action once"
     assert emitted_seek[0] == ("seek", 50.0), f"Expected seek value to be 50.0, got {emitted_seek[0]}"
 
+    # 4. Test Pin Toggling and Dynamic Tooltips
+    assert panel.pinned is False, "Panel should start unpinned"
+    assert "Закрепить" in panel.pin_btn.toolTip(), "Pin tooltip should offer pinning"
+    panel.pin_btn.click()
+    assert panel.pinned is True, "Panel should be pinned after click"
+    assert "Открепить" in panel.pin_btn.toolTip(), "Pin tooltip should offer unpinning"
+    panel.pin_btn.click()
+    assert panel.pinned is False, "Panel should be unpinned after second click"
+    assert "Закрепить" in panel.pin_btn.toolTip(), "Pin tooltip should offer pinning again"
+
+    # Verify tooltips on all controls
+    assert panel.prev_btn.toolTip() != "", "Prev button should have tooltip"
+    assert panel.play_btn.toolTip() != "", "Play button should have tooltip"
+    assert panel.next_btn.toolTip() != "", "Next button should have tooltip"
+    assert panel.close_btn.toolTip() != "", "Close button should have tooltip"
+    assert panel.card.toolTip() != "", "Card should have tooltip"
+    assert panel.visualizer.toolTip() != "", "Visualizer should have tooltip"
+    assert panel.slider.toolTip() != "", "Slider should have tooltip"
+
+    # 5. Test Spectrum Visualizer Color Logic
+    c_bass = panel.visualizer.get_bar_color(0, 15.0)
+    c_mid = panel.visualizer.get_bar_color(10, 15.0)
+    c_treble = panel.visualizer.get_bar_color(25, 15.0)
+
+    # Bass is cyan (red: 56, green: 189, blue: 248)
+    assert (c_bass.red(), c_bass.green(), c_bass.blue()) == (56, 189, 248), f"Unexpected bass color: {c_bass.getRgb()}"
+    # Mid is emerald (red: 52, green: 211, blue: 153)
+    assert (c_mid.red(), c_mid.green(), c_mid.blue()) == (52, 211, 153), f"Unexpected mid color: {c_mid.getRgb()}"
+    # Treble is coral (red: 251, green: 113, blue: 133)
+    assert (c_treble.red(), c_treble.green(), c_treble.blue()) == (251, 113, 133), f"Unexpected treble color: {c_treble.getRgb()}"
+
     print("All tests passed successfully!")
+    os._exit(0)
 
 if __name__ == "__main__":
     test_panel_behavior()

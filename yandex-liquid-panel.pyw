@@ -611,10 +611,27 @@ class SpectrumVisualizer(QWidget):
             x = i * (bar_w + gap)
             y = h - bar_h
 
-            color = QColor(255, 255, 255, 160)
+            if self.playing:
+                color = self.get_bar_color(i, bar_h)
+            else:
+                color = QColor(255, 255, 255, 70)
+
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(color))
             painter.drawRoundedRect(QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
+
+    def get_bar_color(self, i: int, bar_h: float) -> QColor:
+        factor = min(1.0, max(0.1, bar_h / 28.0))
+        alpha = int(120 + 130 * factor)
+        if i < 8:
+            # Bass: cyan/blue
+            return QColor(56, 189, 248, alpha)
+        elif i < 20:
+            # Mid: emerald/green
+            return QColor(52, 211, 153, alpha)
+        else:
+            # Treble: coral/pink
+            return QColor(251, 113, 133, alpha)
 
 
 class CustomSlider(QWidget):
@@ -919,10 +936,21 @@ class LiquidMusicPanel(QWidget):
         self.app_label.setStyleSheet("color: rgba(255,255,255,110); background: transparent;")
 
         self.prev_btn = CircleIconButton("prev")
+        self.prev_btn.setToolTip("Предыдущий трек / Previous track")
+
         self.play_btn = CircleIconButton("play", accent=True)
+        self.play_btn.setToolTip("Воспроизведение / Пауза (Play / Pause)")
+
         self.next_btn = CircleIconButton("next")
+        self.next_btn.setToolTip("Следующий трек / Next track")
+
         self.pin_btn = CircleIconButton("pin")
+        self.pin_btn.setToolTip("Закрепить панель / Pin panel")
+
         self.close_btn = CircleIconButton("close", danger=True)
+        self.close_btn.setToolTip("Закрыть / Close")
+
+        self.card.setToolTip("Двойной клик: переключить компактный/полный вид\nПеретаскивание: переместить панель\nDouble click: toggle compact/full mode\nDrag: move panel")
 
         self.prev_btn.clicked.connect(lambda: self.action_requested.emit("prev", None))
         self.play_btn.clicked.connect(lambda: self.action_requested.emit("play_pause", None))
@@ -956,7 +984,10 @@ class LiquidMusicPanel(QWidget):
         controls_widget.setFixedWidth(34 * 5 + 8 * 4 + 2)
 
         self.visualizer = SpectrumVisualizer()
+        self.visualizer.setToolTip("Спектр частот звука / Audio frequency spectrum")
+
         self.slider = CustomSlider()
+        self.slider.setToolTip("Перемотка трека / Track seek bar")
         self.slider.seek_requested.connect(lambda pos: self.action_requested.emit("seek", pos))
 
         self.card_layout = QVBoxLayout(self.card)
@@ -1039,28 +1070,36 @@ class LiquidMusicPanel(QWidget):
     def _toggle_pin(self):
         self.pinned = not self.pinned
         self.pin_btn.accent = self.pinned
+        if self.pinned:
+            self.pin_btn.setToolTip("Открепить панель / Unpin panel")
+        else:
+            self.pin_btn.setToolTip("Закрепить панель / Pin panel")
         self.pin_btn.update()
 
         if self.pinned:
             self.show_panel()
 
     def update_media(self, data: dict):
-        title = data.get("title") or "Яндекс Музыка не найдена"
-        artist = data.get("artist") or "Открой Яндекс Музыка.exe"
-        app = data.get("app") or ""
+        metadata_changed = data.get("metadata_changed", True)
         playing = data.get("playing", False)
 
-        self.title.setText(self._elide(title, self.title, 270))
-        self.artist.setText(self._elide(artist, self.artist, 270))
+        if metadata_changed:
+            title = data.get("title") or "Яндекс Музыка не найдена"
+            artist = data.get("artist") or "Открой Яндекс Музыка.exe"
+            app = data.get("app") or ""
 
-        if app:
-            clean_app = app.replace("Microsoft.", "").replace("_", " ")
-            self.app_label.setText(self._elide(clean_app, self.app_label, 270))
-        else:
-            self.app_label.setText("Только Яндекс Музыка.exe")
+            self.title.setText(self._elide(title, self.title, 270))
+            self.artist.setText(self._elide(artist, self.artist, 270))
+
+            if app:
+                clean_app = app.replace("Microsoft.", "").replace("_", " ")
+                self.app_label.setText(self._elide(clean_app, self.app_label, 270))
+            else:
+                self.app_label.setText("Только Яндекс Музыка.exe")
+
+            self.cover.set_cover_bytes(data.get("cover"))
 
         self.play_btn.set_icon("pause" if playing else "play")
-        self.cover.set_cover_bytes(data.get("cover"))
 
         self.visualizer.set_playing(playing)
         self.slider.set_media_state(
